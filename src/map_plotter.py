@@ -10,7 +10,27 @@ class MapPlotter:
     def save_map(self, map_path="data/processed/incidents_map.html"):
         self.map.save(map_path)
 
-    def plot_map(self):
+    def plot_map(self, bbox):
+        minLon, minLat, maxLon, maxLat = bbox
+        # geojson dict that is a polygone of bbox
+        wrapper = {
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [minLon, maxLat],
+                        [maxLon, maxLat],
+                        [maxLon, minLat],
+                        [minLon, minLat],
+                        [minLon, maxLat],
+                    ]
+                ],
+            },
+        }
+        GeoJson(wrapper, style_function=lambda x: {"fillOpacity": 0.3, "fillColor": "green"}).add_to(self.map)
+
         incidents = self.incidents
         for incident in incidents:
             # Create a GeoJson object and add it to the map
@@ -39,14 +59,15 @@ class MapPlotter:
 
 import json
 
-file_path = "data/raw/temp6.txt"
-with open(file_path, "r") as file:
-    incidents = json.loads(file.read())["incidents"]
-    file.close()
+file_path = "data/raw/temp1.json"
+with open(file_path, "r") as json_file:
+    incidents = json.load(json_file)["incidents"]
+    json_file.close()
 
 center_lat, center_lon = -73.9787155, 40.6974875
+bbox = [-74.257159, 40.477398, -73.700272, 40.917577]
 mp = MapPlotter(incidents, center_lat, center_lon)
-mp.plot_map()
+mp.plot_map(bbox)
 mp.save_map()
 
 
