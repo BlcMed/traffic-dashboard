@@ -73,33 +73,24 @@ class TomtomClient:
     def make_request_area(
         self,
         area="New York",
-        categoryFilter=1,
         language="en-GB",
         timeValidityFilter="present",
         extra_params={},
     ):
-        pass
+        try:
+            with open("data/coordinates.json", "r") as json_file:
+                coordinates_dict = json.load(json_file)
+                bbox = coordinates_dict[area]["bbox"]
+                response = self.make_request_bounding_box(bbox)
+                return response
+        except FileNotFoundError as e:
+            raise Exception("Error opening coordinates.json file: File not found")
+        except KeyError as e:
+            raise Exception("Error parsing coordinates.json file: Invalid format")
+        except Exception as e:
+            raise Exception(f"Error loading coordinates.json file: {e}")
 
-"""
-client = TomtomClient()
-with open("data/coordinates.json", "r") as json_file:
-    coordinates_dict = json.load(json_file)
-    json_file.close()
+    def save_response(self, response, filename):
+        with open(filename, "wb") as file:
+            file.write(response.content)
 
-bbox = coordinates_dict["New York"]["bbox"]
-response = client.make_request_bounding_box(bbox)
-# TODO:would be changed later to
-# response=client.make_request_area('New York')
-
-with open("data/raw/temp6.txt", "wb") as file:
-    file.write(response.content)
-
-incidents = response.json()["incidents"]
-print(f"we got {len(incidents)} incident.")
-
-
-# for incident in incidents:
-#     print(
-#         f'time : {incident["properties"]["startTime"]}, category:{icons_dict[incident["properties"]["iconCategory"]] } .'
-#     )
-"""
