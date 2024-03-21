@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 import requests
 import json
 
@@ -22,11 +21,9 @@ class TomtomClient:
     }
     # fields we're interested in
     fields = {
-        "fields": "{incidents{type,geometry{type,coordinates},properties{id,iconCategory,startTime,endTime,from,to,length,roadNumbers}}}"
+        "fields": "{incidents{type,geometry{type,coordinates},properties{id,iconCategory,startTime,endTime,from,to,length,delay,roadNumbers}}}"
     }
 
-    dotenv_path = "config/.env"
-    load_dotenv(dotenv_path)
 
     def __init__(self):
         self.base_url = os.getenv("base_url")
@@ -83,7 +80,7 @@ class TomtomClient:
     ):
         pass
 
-
+"""
 client = TomtomClient()
 with open("data/coordinates.json", "r") as json_file:
     coordinates_dict = json.load(json_file)
@@ -91,7 +88,7 @@ with open("data/coordinates.json", "r") as json_file:
 
 bbox = coordinates_dict["New York"]["bbox"]
 response = client.make_request_bounding_box(bbox)
-# would be changed later to
+# TODO:would be changed later to
 # response=client.make_request_area('New York')
 
 with open("data/raw/temp6.txt", "wb") as file:
@@ -105,3 +102,4 @@ print(f"we got {len(incidents)} incident.")
 #     print(
 #         f'time : {incident["properties"]["startTime"]}, category:{icons_dict[incident["properties"]["iconCategory"]] } .'
 #     )
+"""
