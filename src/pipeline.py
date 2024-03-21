@@ -86,7 +86,21 @@ def load(data):
 
         # itterate through the dict of dict data and insert into the table
         for value in data.values():
-            insert_query = "INSERT INTO traffic_incidents (id, geometry_type, geometry_coordinates, from_, to_, start_time, end_time, road_numbers, length, delay, category) VALUES (%s, %s,%s, %s,%s, %s,%s, %s,%s, %s,%s) ON CONFLICT (id) DO NOTHING;"
+            insert_query = """
+                INSERT INTO traffic_incidents (id, geometry_type, geometry_coordinates, from_, to_, start_time, end_time, road_numbers, length, delay, category)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE
+                SET geometry_type = EXCLUDED.geometry_type,
+                    geometry_coordinates = EXCLUDED.geometry_coordinates,
+                    from_ = EXCLUDED.from_,
+                    to_ = EXCLUDED.to_,
+                    start_time = EXCLUDED.start_time,
+                    end_time = EXCLUDED.end_time,
+                    road_numbers = EXCLUDED.road_numbers,
+                    length = EXCLUDED.length,
+                    delay = EXCLUDED.delay,
+                    category = EXCLUDED.category;
+            """
             data = (value["id"], value["geo_type"], value["geo_coordinates"], value["from"], value["to"], value["startTime"], value["endTime"], value["roadnumbers"], value["length"], value["delay"], value["category"])
             cursor.execute(insert_query, data)
         
