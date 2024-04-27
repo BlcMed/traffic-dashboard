@@ -6,7 +6,8 @@ import json
 from src.api import TomtomClient
 from airflow.contrib.hooks.gcs_hook import GoogleCloudStorageHook
 import logging
-import psycopg2, os, ast
+import os, ast
+import csv, io
 
 # Define the ETL functions
 def extract():
@@ -41,7 +42,7 @@ def extract():
 
 def transform(extracted_data):
     try:
-        incidents = {}
+        incidents = pd.DataFrame(columns=["id", "geoType", "geoCoordinates", "from", "to", "startTime", "endTime", "roadNumbers", "length", "delay", "category"])
         
         extracted_data = str(extracted_data).replace("\'", "\"")
         list = ast.literal_eval(str(extracted_data))
@@ -49,70 +50,63 @@ def transform(extracted_data):
         for data in list:
             for incident in data['incidents']:
                 # Extracting information from each incident
-                incident_ = {
-                    "id": incident["properties"]["id"],
-                    "geo_type": incident["geometry"]["type"],
-                    "geo_coordinates" : incident["geometry"]["coordinates"],
-                    "from": incident["properties"]["from"],
-                    "to": incident["properties"]["to"],
-                    "startTime": incident["properties"]["startTime"],
-                    "endTime": incident["properties"]["endTime"],
-                    "roadnumbers": incident["properties"]["roadNumbers"],
-                    "length":  incident["properties"]["length"],
-                    "delay": incident["properties"]["delay"],
-                    "category": incident["properties"]["iconCategory"]
-                }
-                incidents[incident_["id"]] = incident_
-
-        incidents_json = json.dumps(incidents)
-        return incidents_json
+                
+                incidents["id"] = incident["properties"]["id"],
+                incidents["geoType"] = incident["geometry"]["type"],
+                incidents["geoCoordinates"] = incident["geometry"]["coordinates"],
+                incidents["from"] = incident["properties"]["from"],
+                incidents["to"] = incident["properties"]["to"],
+                incidents["startTime"] = incident["properties"]["startTime"],
+                incidents["endTime"] = incident["properties"]["endTime"],
+                incidents["roadNumbers"] = incident["properties"]["roadNumbers"],
+                incidents["length"] =  incident["properties"]["length"],
+                incidents["delay"] = incident["properties"]["delay"],
+                incidents["category"] = incident["properties"]["iconCategory"]
+  
+        return incidents.to_dict(orient='records')
     except Exception as e:
         logging.error("Error occurred during data transformation:", e)
         exit(1)
+
 
 def load(data):
     try:
         data = str(data).replace("null", "None")
         data = eval(data)
 
-        # Connect to Google Cloud SQL
-        conn = psycopg2.connect(
-            host= os.getenv('DB_IP'),
-            database= os.getenv('DB_NAME'),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD")
-        )
-        cursor = conn.cursor()
+        # Convert the dictionary to a DataFrame
+        data_df = pd.DataFrame.from_dict(data)
 
-        # itterate through the dict of dict data and insert into the table
-        for value in data.values():
-            insert_query = """
-                INSERT INTO traffic_incidents (id, geometry_type, geometry_coordinates, from_, to_, start_time, end_time, road_numbers, length, delay, category)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO UPDATE
-                SET geometry_type = EXCLUDED.geometry_type,
-                    geometry_coordinates = EXCLUDED.geometry_coordinates,
-                    from_ = EXCLUDED.from_,
-                    to_ = EXCLUDED.to_,
-                    start_time = EXCLUDED.start_time,
-                    end_time = EXCLUDED.end_time,
-                    road_numbers = EXCLUDED.road_numbers,
-                    length = EXCLUDED.length,
-                    delay = EXCLUDED.delay,
-                    category = EXCLUDED.category;
-            """
-            data = (value["id"], value["geo_type"], value["geo_coordinates"], value["from"], value["to"], value["startTime"], value["endTime"], value["roadnumbers"], value["length"], value["delay"], value["category"])
-            cursor.execute(insert_query, data)
-        
+        # Connect to Google Cloud Bucket
+        gcs_hook = GoogleCloudStorageHook()
 
-        # Commit the transaction and close connection
-        conn.commit()
-        cursor.close()
-        conn.close()
-            
+        # Define GCS bucket and object
+        bucket_name = 'us-central1-mycomposer-0ccdd0a0-bucket'
+
+        # Download coordinates file from GCS
+        data_file_bytes = gcs_hook.download(bucket_name=bucket_name, object_name='dags/data/data_file.csv')
+
+        # Decode bytes to string
+        data_file_string = data_file_bytes.decode('utf-8-sig')
+
+        # Load coordinates data from CSV string
+        data_file = pd.read_csv(io.StringIO(data_file_string),sep=',', index_col="id")
+
+        # Update data_file with values from data_df
+        data_file.update(data_df)
         
-    except (Exception, psycopg2.DatabaseError) as error:
-        print("Error loading data into database:", error)
+        # Reset the index
+        data_file.reset_index(inplace=True)
+
+        # Save the updated data_file to a CSV file
+        csv_data = data_file.to_csv(index=False)
+
+        #load to bucket
+        gcs_hook.upload(bucket_name=bucket_name, object_name='dags/data/data_file.csv', data=csv_data)
+
+
+    except (Exception) as error:
+        print("Error loading data into file:", error)
         exit(1)
 
 # Define the DAG
