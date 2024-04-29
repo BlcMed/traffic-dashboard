@@ -3,7 +3,7 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
 import pandas as pd
 import json
-from src.api import TomtomClient
+from modules.composer.apis.api import TomtomClient
 from airflow.contrib.hooks.gcs_hook import GoogleCloudStorageHook
 import logging
 import os, ast
@@ -95,6 +95,9 @@ def load(data):
         # Update data_file with values from data_df
         data_file.update(data_df)
         
+        # merge the two dataframes
+        data_file = pd.merge(data_file, data_df)
+
         # Reset the index
         data_file.reset_index(inplace=True)
 
