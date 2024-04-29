@@ -7,7 +7,7 @@ from modules.composer.apis.api import TomtomClient
 from airflow.contrib.hooks.gcs_hook import GoogleCloudStorageHook
 import logging
 import os, ast
-import csv, io
+import io
 
 # Define the ETL functions
 def extract():
@@ -16,7 +16,7 @@ def extract():
         gcs_hook = GoogleCloudStorageHook()
 
         # Define GCS bucket and object
-        bucket_name = 'us-central1-mycomposer-0ccdd0a0-bucket'
+        bucket_name = os.getenv('bucket_name')
 
         # Download coordinates file from GCS
         coordinates_bytes = gcs_hook.download(bucket_name=bucket_name, object_name='dags/data/coordinates_file.json')
@@ -81,7 +81,7 @@ def load(data):
         gcs_hook = GoogleCloudStorageHook()
 
         # Define GCS bucket and object
-        bucket_name = 'us-central1-mycomposer-0ccdd0a0-bucket'
+        bucket_name = os.getenv('bucket_name')
 
         # Download coordinates file from GCS
         data_file_bytes = gcs_hook.download(bucket_name=bucket_name, object_name='dags/data/data_file.csv')

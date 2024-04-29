@@ -4,4 +4,4 @@ logs/
 
 .ipynb_checkpoints/
 
-.env
+config/
