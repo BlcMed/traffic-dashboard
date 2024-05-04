@@ -1,0 +1,16 @@
+{
+    "columns": [
+      {
+        "name": "time_id",
+        "type": "INT",
+        "constraints": [
+          "primary_key"
+        ]
+      },
+      {
+        "name": "time_stamp",
+        "type": "DATETIME",
+        "constraints": []
+      }
+    ]
+  }
