@@ -1,0 +1,16 @@
+{
+  "columns": [
+    {
+      "name": "category_id",
+      "type": "INT",
+      "constraints": [
+        "primary_key"
+      ]
+    },
+    {
+      "name": "category_name",
+      "type": "VARCHAR",
+      "constraints": []
+    }
+  ]
+}
