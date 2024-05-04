@@ -1,0 +1,109 @@
+{
+  "tables": [
+    {
+      "name": "fact_table",
+      "columns": [
+        {
+          "name": "fact_id",
+          "type": "INT",
+          "constraints": [
+            "primary_key"
+          ]
+        },
+        {
+          "name": "tile_id",
+          "type": "INT",
+          "constraints": [
+            "foreign_key"
+          ]
+        },
+        {
+          "name": "time_id",
+          "type": "INT",
+          "constraints": [
+            "foreign_key"
+          ]
+        },
+        {
+          "name": "category_id",
+          "type": "INT",
+          "constraints": [
+            "foreign_key"
+          ]
+        },
+        {
+          "name": "incident_count",
+          "type": "INT",
+          "constraints": [
+            "foreign_key"
+          ]
+        },
+        {
+          "name": "total_delay",
+          "type": "INT",
+          "constraints": [
+            "foreign_key"
+          ]
+        },
+        {
+          "name": "total_length",
+          "type": "DECIMAL",
+          "constraints": [
+            "foreign_key"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "time_dimension",
+      "columns": [
+        {
+          "name": "time_id",
+          "type": "INT",
+          "constraints": [
+            "primary_key"
+          ]
+        },
+        {
+          "name": "time_stamp",
+          "type": "DATETIME",
+          "constraints": []
+        }
+      ]
+    },
+    {
+      "name": "category_dimension",
+      "columns": [
+        {
+          "name": "category_id",
+          "type": "INT",
+          "constraints": [
+            "primary_key"
+          ]
+        },
+        {
+          "name": "category_name",
+          "type": "VARCHAR",
+          "constraints": []
+        }
+      ]
+    },
+    {
+      "name": "tile_dimension",
+      "columns": [
+        {
+          "name": "tile_id",
+          "type": "INT",
+          "constraints": [
+            "primary_key"
+          ]
+        },
+        {
+          "name": "buildings_number",
+          "type": "INT",
+          "constraints": []
+        }
+      ]
+    }
+  ]
+}

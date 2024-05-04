@@ -1,16 +1,16 @@
 {
-    "columns": [
-      {
-        "name": "tile_id",
-        "type": "INT",
-        "constraints": [
-          "primary_key"
-        ]
-      },
-      {
-        "name": "buildings_number",
-        "type": "INT",
-        "constraints": []
-      }
-    ]
-  }
+  "columns": [
+    {
+      "name": "tile_id",
+      "type": "INT",
+      "constraints": [
+        "primary_key"
+      ]
+    },
+    {
+      "name": "buildings_number",
+      "type": "INT",
+      "constraints": []
+    }
+  ]
+}
