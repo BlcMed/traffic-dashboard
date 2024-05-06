@@ -1,15 +1,16 @@
 {
-    "BigQuery Schema": [{
-      "name": "rank",
-      "type": "STRING"
-     },
-     {
-      "name": "name",
-      "type": "STRING"
-     },
-     {
-      "name": "country",
-      "type": "STRING"
-     }
-    ]
-   }
+  "BigQuery Schema": [
+    {
+      "name": "category_id",
+      "type": "INT",
+      "constraints": [
+        "primary_key"
+      ]
+    },
+    {
+      "name": "category_name",
+      "type": "VARCHAR",
+      "constraints": []
+    }
+  ]
+}

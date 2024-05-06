@@ -1,15 +1,16 @@
 {
-    "BigQuery Schema": [{
-      "name": "rank",
-      "type": "STRING"
-     },
-     {
-      "name": "name",
-      "type": "STRING"
-     },
-     {
-      "name": "country",
-      "type": "STRING"
-     }
-    ]
-   }
+  "BigQuery Schema": [
+    {
+      "name": "time_id",
+      "type": "INT",
+      "constraints": [
+        "primary_key"
+      ]
+    },
+    {
+      "name": "time_stamp",
+      "type": "DATETIME",
+      "constraints": []
+    }
+  ]
+}
