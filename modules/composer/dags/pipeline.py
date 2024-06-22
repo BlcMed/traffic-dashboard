@@ -19,7 +19,7 @@ def extract():
         bucket_name = os.getenv('bucket_name')
 
         # Download coordinates file from GCS
-        coordinates_bytes = gcs_hook.download(bucket_name=bucket_name, object_name='dags/data/coordinates_file.json')
+        coordinates_bytes = gcs_hook.download(bucket_name=bucket_name, object_name=os.getenv('object_name'))
 
         # Decode bytes to string
         coordinates_string = coordinates_bytes.decode('utf-8')
@@ -83,8 +83,8 @@ def load(data):
         # Define GCS bucket and object
         bucket_name = os.getenv('bucket_name')
 
-        # Download coordinates file from GCS
-        data_file_bytes = gcs_hook.download(bucket_name=bucket_name, object_name='dags/data/data_file.csv')
+        # Download data file from GCS
+        data_file_bytes = gcs_hook.download(bucket_name=bucket_name, object_name=os.getenv('file_name'))
 
         # Decode bytes to string
         data_file_string = data_file_bytes.decode('utf-8-sig')
@@ -92,20 +92,27 @@ def load(data):
         # Load coordinates data from CSV string
         data_file = pd.read_csv(io.StringIO(data_file_string),sep=',', index_col="id")
 
-        # Update data_file with values from data_df
-        data_file.update(data_df)
+        #check if dataframe is empty
+        if (data_file.empty):
+            data_file.columns = ["id", "geoType", "geoCoordinates", "from", "to", "startTime", "endTime", "roadNumbers", "length", "delay", "category"]
+            data_file = data_df.copy()
+            
         
-        # merge the two dataframes
-        data_file = pd.merge(data_file, data_df)
+        else:
+            # Update data_file with values from data_df
+            data_file.update(data_df)
+        
+            # merge the two dataframes
+            data_file = pd.merge(data_file, data_df)
 
-        # Reset the index
-        data_file.reset_index(inplace=True)
+            # Reset the index
+            data_file.reset_index(inplace=True)
 
         # Save the updated data_file to a CSV file
         csv_data = data_file.to_csv(index=False)
 
         #load to bucket
-        gcs_hook.upload(bucket_name=bucket_name, object_name='dags/data/data_file.csv', data=csv_data)
+        gcs_hook.upload(bucket_name=bucket_name, object_name=os.getenv('file_name'), data=csv_data)
 
 
     except (Exception) as error:
