@@ -45,23 +45,30 @@ def transform(extracted_data):
         incidents = pd.DataFrame(columns=["id", "geoType", "geoCoordinates", "from", "to", "startTime", "endTime", "roadNumbers", "length", "delay", "category"])
         
         extracted_data = str(extracted_data).replace("\'", "\"")
-        list = ast.literal_eval(str(extracted_data))
-        
-        for data in list:
+    
+        list_of_data = ast.literal_eval(extracted_data)
+
+        # Loop through the list and add each incident to the DataFrame using loc
+        for data in list_of_data:
+            
             for incident in data['incidents']:
-                # Extracting information from each incident
+                # Extracting information from each incident and creating a dictionary
+                incident_data = {
+                    "id": incident["properties"]["id"],
+                    "geoType": incident["geometry"]["type"],
+                    "geoCoordinates": incident["geometry"]["coordinates"],
+                    "from": incident["properties"]["from"],
+                    "to": incident["properties"]["to"],
+                    "startTime": incident["properties"]["startTime"],
+                    "endTime": incident["properties"]["endTime"],
+                    "roadNumbers": incident["properties"]["roadNumbers"],
+                    "length": incident["properties"]["length"],
+                    "delay": incident["properties"]["delay"],
+                    "category": incident["properties"]["iconCategory"]
+                }
                 
-                incidents["id"] = incident["properties"]["id"],
-                incidents["geoType"] = incident["geometry"]["type"],
-                incidents["geoCoordinates"] = incident["geometry"]["coordinates"],
-                incidents["from"] = incident["properties"]["from"],
-                incidents["to"] = incident["properties"]["to"],
-                incidents["startTime"] = incident["properties"]["startTime"],
-                incidents["endTime"] = incident["properties"]["endTime"],
-                incidents["roadNumbers"] = incident["properties"]["roadNumbers"],
-                incidents["length"] =  incident["properties"]["length"],
-                incidents["delay"] = incident["properties"]["delay"],
-                incidents["category"] = incident["properties"]["iconCategory"]
+                # Append the dictionary as a new row to the DataFrame using loc
+                incidents.loc[len(incidents)] = incident_data
   
         return incidents.to_dict(orient='records')
     except Exception as e:
