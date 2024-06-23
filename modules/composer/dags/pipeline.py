@@ -97,23 +97,33 @@ def load(data):
         data_file_string = data_file_bytes.decode('utf-8-sig')
 
         # Load coordinates data from CSV string
-        data_file = pd.read_csv(io.StringIO(data_file_string),sep=',', index_col="id")
+        data_file = pd.read_csv(io.StringIO(data_file_string),sep=',')
 
-        #check if dataframe is empty
+        data_file.columns = ["id","geoType", "geoCoordinates", "from", "to", "startTime", "endTime", "roadNumbers", "length", "delay", "category"]
+        data_df.columns = ["id","geoType", "geoCoordinates", "from", "to", "startTime", "endTime", "roadNumbers", "length", "delay", "category"]
+            
+                  
+        # check if dataframe is empty
         if (data_file.empty):
-            data_file.columns = ["id", "geoType", "geoCoordinates", "from", "to", "startTime", "endTime", "roadNumbers", "length", "delay", "category"]
             data_file = data_df.copy()
             
         
         else:
-            # Update data_file with values from data_df
-            data_file.update(data_df)
-        
-            # merge the two dataframes
-            data_file = pd.merge(data_file, data_df)
+            # Update rows in `data` with values from `data2`
+            data_file.set_index("id", inplace=True)
+            data_df.set_index("id", inplace=True)
 
-            # Reset the index
-            data_file.reset_index(inplace=True)
+            # Update existing rows
+            data_file.update(data_df)
+            
+            # Add new rows from data2 that are not in data
+            combined = pd.concat([data_file, data_df.loc[~data_df.index.isin(data_file.index)]])
+            
+            # Reset the index if needed
+            combined.reset_index(inplace=True)
+
+            data_file = combined
+
 
         # Save the updated data_file to a CSV file
         csv_data = data_file.to_csv(index=False)
